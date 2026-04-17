@@ -32,7 +32,7 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Run smoke click test
-        run: npm run test:smoke
+        run: CI=true npm run test:smoke
 
       - name: Upload Playwright report
         if: always()
@@ -64,7 +64,7 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Run visual homepage test
-        run: npm run test:visual
+        run: CI=true npm run test:visual
 
       - name: Upload Playwright report
         if: always()
@@ -96,7 +96,7 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Run deep dead-links test
-        run: npm run test:deep
+        run: CI=true npm run test:deep
 
       - name: Upload Playwright report
         if: always()
