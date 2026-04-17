@@ -4,6 +4,17 @@
 
 Playwright testproject om links/buttons op `https://www.vaarweginformatie.nl` te controleren, inclusief detectie van 404-pagina’s.
 
+## Inhoudsopgave
+
+- [Vereisten](#vereisten)
+- [Installatie](#installatie)
+- [Tests starten](#tests-starten)
+- [GitHub Actions CI/CD](#github-actions-cicd)
+- [Beschikbare tests](#beschikbare-tests)
+- [Rapport bekijken](#rapport-bekijken)
+- [Structuur](#structuur)
+- [Veelgebruikte troubleshooting](#veelgebruikte-troubleshooting)
+
 ## Vereisten
 
 - Node.js 18+
