@@ -62,6 +62,37 @@ docker run --rm \
 
 In CI staat dit in `.github/workflows/playwright.yml`.
 
+## GitHub Actions CI/CD
+
+De workflow draait automatisch bij push/PR naar `main` en volgt het aanbevolen schema:
+
+### Jobs
+
+| Job | Trigger | Timeout | Wat |
+|-----|---------|---------|-----|
+| `smoke-click` | Push / PR | 30 min | Klik test (`npm run test:smoke`) |
+| `visual-homepage` | Push / PR | 30 min | Visual regressie (`npm run test:visual`) |
+| `nightly-dead-links` | Nightly (02:00 UTC) | 60 min | Dead-links crawler (`npm run test:deep`) |
+
+### Artifacts
+
+Elk na een test run:
+- `playwright-report-smoke`: HTML rapport van klik test
+- `playwright-report-visual`: HTML rapport van visual tests
+- `playwright-report-nightly`: HTML rapport van crawler (nacht)
+
+Download via Actions tab in je GitHub repo.
+
+### Workflow handmatig triggeren
+
+Open Actions tab → Selecteer `Playwright Link Checks` → `Run workflow` → kies branch → `Run workflow`
+
+### Status badge
+
+[![Playwright Link Checks](https://github.com/sim007/My-Playwright/actions/workflows/playwright.yml/badge.svg?branch=main)](https://github.com/sim007/My-Playwright/actions/workflows/playwright.yml)
+
+In README staat de badge aan de top (koppeert direct naar Actions pagina).
+
 ### Alle tests draaien
 
 ```bash
