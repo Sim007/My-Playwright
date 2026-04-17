@@ -3,7 +3,14 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "scripts": {},
+  "scripts": {
+    "test": "playwright test --project=chromium",
+    "test:smoke": "playwright test click --project=chromium",
+    "test:deep": "playwright test dead-links --project=chromium",
+    "test:visual": "playwright test homepage-visual --project=chromium",
+    "test:visual:update": "playwright test homepage-visual --project=chromium --update-snapshots",
+    "report": "playwright show-report --host 127.0.0.1 --port 9333"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
