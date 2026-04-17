@@ -1,5 +1,7 @@
 # My-Playwright
 
+[![Playwright Link Checks](https://github.com/sim007/My-Playwright/actions/workflows/playwright.yml/badge.svg?branch=main)](https://github.com/sim007/My-Playwright/actions/workflows/playwright.yml)
+
 Playwright testproject om links/buttons op `https://www.vaarweginformatie.nl` te controleren, inclusief detectie van 404-pagina’s.
 
 ## Vereisten
@@ -55,6 +57,7 @@ docker run --rm \
 ### Aanbevolen schema
 
 - **Elke push/PR (smoke):** kliktest
+- **Elke push/PR (visual):** homepage visual regressie
 - **Nightly (deep):** dead-links crawler
 
 In CI staat dit in `.github/workflows/playwright.yml`.
