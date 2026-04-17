@@ -16,6 +16,42 @@ npx playwright install chromium
 
 ## Tests starten
 
+### Via Docker
+
+Build image:
+
+```bash
+docker build -t my-playwright-tests .
+```
+
+Run alle tests (Chromium):
+
+```bash
+docker run --rm my-playwright-tests
+```
+
+Run met output naar lokale map (rapport/testresultaten) **en** lokale `tests/` snapshots:
+
+```bash
+docker run --rm \
+  -v "$(pwd)/tests:/app/tests" \
+  -v "$(pwd)/playwright-report:/app/playwright-report" \
+  -v "$(pwd)/test-results:/app/test-results" \
+  my-playwright-tests
+```
+
+Waarom `tests` mount? De visual snapshots (`tests/*-snapshots`) worden daar gelezen/geschreven; zonder deze mount kan de Docker-run falen op ontbrekende Linux snapshot.
+
+Alleen visual baseline updaten in Docker:
+
+```bash
+docker run --rm \
+  -v "$(pwd)/tests:/app/tests" \
+  -v "$(pwd)/playwright-report:/app/playwright-report" \
+  -v "$(pwd)/test-results:/app/test-results" \
+  my-playwright-tests npx playwright test homepage-visual --project=chromium --update-snapshots
+```
+
 ### Aanbevolen schema
 
 - **Elke push/PR (smoke):** kliktest
