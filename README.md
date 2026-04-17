@@ -162,40 +162,70 @@ npm test
 
 ### 1) `tests/click.spec.ts`
 
-Doel:
-- Vindt interactieve elementen op de startpagina (links + buttons)
-- Klikt/controleert elke actie
-- Ondersteunt navigatie in dezelfde tab én popup/nieuw tabblad
-- Rapporteert 404’s en andere fouten
+```gherkin
+Feature: Klik + 404 controle op homepage
+  Als beheerder van de website
+  wil ik dat alle interactieve homepage-elementen valide responses geven
+  zodat 404-links snel gevonden worden.
 
-Resultaat in output:
-- Aantal gevonden links/buttons
-- Aantal gecheckte links/buttons
-- Lijst met eventuele 404-resultaten
+  Scenario: Interactieve targets controleren
+    Given de homepage van vaarweginformatie is geladen
+    When de test alle links en buttons detecteert en controleert
+    Then worden links in dezelfde tab én popup/nieuw tabblad ondersteund
+    And worden 404- en andere fouten gerapporteerd
+    And bevat de output het aantal gevonden en gecheckte links/buttons
+
+  Scenario: Rapportage van controlelijst
+    Given de klikcontrole is uitgevoerd
+    When het HTML rapport wordt gegenereerd
+    Then is attachment "all-discovered-targets.txt" beschikbaar
+    And is attachment "all-checked-urls.txt" beschikbaar
+```
 
 Voorbeeld van popup/new-tab actie:
 - `OK button popup: [200] Sluisplanning → https://sluisplanning.rws.nl/...`
 
-Attachments in HTML rapport:
-- `all-discovered-targets.txt`: alle gevonden targets (vooraf)
-- `all-checked-urls.txt`: alle gecheckte URL’s met status
-
 ### 2) `tests/dead-links.spec.ts`
 
-Doel:
-- Crawlt interne pagina’s vanaf `BASE_URL`
-- Controleert links met HEAD/GET
-- Faalt bij gevonden dode links (404/410/5xx of netwerkfouten)
+```gherkin
+Feature: Dead-links crawler
+  Als beheerder van de website
+  wil ik interne pagina's automatisch laten crawlen
+  zodat dode links vroeg worden gedetecteerd.
+
+  Scenario: Interne links valideren vanaf BASE_URL
+    Given de crawler start vanaf BASE_URL
+    When interne pagina's worden bezocht tot MAX_PAGES
+    And links worden gecontroleerd met HEAD/GET
+    Then faalt de test bij 404, 410, 5xx of netwerkfouten
+```
 
 Instelbaar:
 - `MAX_PAGES` in de testfile bepaalt hoeveel pagina’s gecrawld worden
 
 ### 3) `tests/homepage-visual.spec.ts`
 
-Doel:
-- Visual regressie op de homepage (full-page screenshot)
-- Extra layout-check: homepage quick links staan in een gele (bijna) paginabrede balk
-- Zoektest: gebruikt het zoekveld rechtsboven en valideert resultaten voor `Rijkswaterstaat`
+```gherkin
+Feature: Homepage visual en functionele checks
+  Als beheerder van de website
+  wil ik visuele en functionele regressies op de homepage detecteren
+  zodat layout en zoekfunctie betrouwbaar blijven.
+
+  Scenario: Visual regressie op homepage
+    Given de homepage is geladen
+    When een full-page screenshot wordt vergeleken met de baseline
+    Then moet de visual vergelijking binnen de ingestelde tolerantie blijven
+
+  Scenario: Quick links in gele balk
+    Given de quick links op de homepage zichtbaar zijn
+    When de layout van de quick links wordt gevalideerd
+    Then staan de quick links in een gele (bijna) paginabrede balk
+
+  Scenario: Zoeken op Rijkswaterstaat
+    Given het zoekveld rechtsboven is beschikbaar
+    When de gebruiker zoekt op "Rijkswaterstaat"
+    Then worden relevante zoekresultaten getoond
+```
 
 Gebruik:
 - Eerste baseline maken/updaten: `npm run test:visual:update`
