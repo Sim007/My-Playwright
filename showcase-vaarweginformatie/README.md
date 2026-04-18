@@ -24,8 +24,6 @@ De repository bevat lokale run-instructies, Docker-ondersteuning, GitHub Actions
 
 ## Installatie
 
-De rootconfig in deze repo detecteert automatisch elke submap met zowel `playwright.config.ts` als `tests/`. Daardoor verschijnen tests uit extra showcase-mappen ook in de Playwright test explorer op repo-niveau.
-
 ```bash
 npm install
 npx playwright install chromium
@@ -79,36 +77,28 @@ In CI staat dit in `.github/workflows/playwright.yml`.
 
 ## GitHub Actions CI/CD
 
-De workflow is nu generiek voor alle showcase-mappen en kan handmatig gestart worden via GitHub Actions.
+De workflow draait automatisch bij push/PR naar `main` en volgt het aanbevolen schema:
 
 ### Jobs
 
 | Job | Trigger | Timeout | Wat |
 |-----|---------|---------|-----|
-| `discover-showcases` | Handmatig | - | Zoekt alle showcase-mappen met Playwright-config en testmap |
-| `smoke-click` | Handmatig | 30 min | Klik test (`npm run test:smoke`) per showcase |
-| `visual-homepage` | Handmatig | 30 min | Visual regressie (`npm run test:visual`) per showcase |
-| `nightly-dead-links` | Handmatig | 60 min | Dead-links crawler (`npm run test:deep`) per showcase |
+| `smoke-click` | Push / PR | 30 min | Klik test (`npm run test:smoke`) |
+| `visual-homepage` | Push / PR | 30 min | Visual regressie (`npm run test:visual`) |
+| `nightly-dead-links` | Nightly (02:00 UTC) | 60 min | Dead-links crawler (`npm run test:deep`) |
 
 ### Artifacts
 
 Elk na een test run:
-- `playwright-report-smoke-<showcase>`: HTML rapport van klik test
-- `playwright-report-visual-<showcase>`: HTML rapport van visual tests
-- `playwright-report-nightly-<showcase>`: HTML rapport van crawler
+- `playwright-report-smoke`: HTML rapport van klik test
+- `playwright-report-visual`: HTML rapport van visual tests
+- `playwright-report-nightly`: HTML rapport van crawler (nacht)
 
 Download via Actions tab in je GitHub repo.
 
 ### Workflow handmatig triggeren
 
 Open Actions tab → Selecteer `Playwright Link Checks` → `Run workflow` → kies branch → `Run workflow`
-
-De workflow detecteert automatisch alle showcase-mappen die minimaal deze bestanden bevatten:
-
-- `package.json`
-- `package-lock.json`
-- `playwright.config.ts`
-- `tests/`
 
 ### Status badge
 
@@ -121,19 +111,6 @@ In README staat de badge aan de top (koppeert direct naar Actions pagina).
 ```bash
 npx playwright test --project=chromium
 ```
-
-### Extra showcase-map toevoegen
-
-Wil je een extra showcase toevoegen, bijvoorbeeld `showcase-nieuw`, dan is dit voldoende:
-
-- maak `showcase-nieuw/playwright.config.ts`
-- maak `showcase-nieuw/tests/`
-- voeg `showcase-nieuw/package.json` toe
-- commit ook `showcase-nieuw/package-lock.json` als je die showcase in GitHub Actions wilt meenemen
-
-Daarna wordt die showcase automatisch meegenomen door de rootconfig in deze repo.
-
-De GitHub Actions workflow neemt dezelfde showcase ook automatisch mee zodra die map aan de CI-voorwaarden voldoet.
 
 ### Alleen de klik + 404 test draaien
 

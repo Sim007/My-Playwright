@@ -1,81 +1,69 @@
-import { defineConfig, devices } from '@playwright/test';
+import { defineConfig } from '@playwright/test';
+import { existsSync, readdirSync } from 'node:fs';
+import path from 'node:path';
 
-/**
- * Read environment variables from file.
- * https://github.com/motdotla/dotenv
- */
-// import dotenv from 'dotenv';
-// import path from 'path';
-// dotenv.config({ path: path.resolve(__dirname, '.env') });
+type ChildConfig = {
+	testDir?: string;
+	timeout?: number;
+	fullyParallel?: boolean;
+	retries?: number;
+	use?: Record<string, unknown>;
+	projects?: Array<Record<string, unknown>>;
+	reporter?: unknown;
+	workers?: number;
+};
 
-/**
- * See https://playwright.dev/docs/test-configuration.
- */
+const repoRoot = __dirname;
+
+const showcaseDirs = readdirSync(repoRoot, { withFileTypes: true })
+	.filter((entry) => entry.isDirectory())
+	.map((entry) => entry.name)
+	.filter(
+		(dirName) =>
+			existsSync(path.join(repoRoot, dirName, 'playwright.config.ts')) &&
+			existsSync(path.join(repoRoot, dirName, 'tests')),
+	)
+	.sort();
+
+if (showcaseDirs.length === 0) {
+	throw new Error(
+		'No showcase folders found. Add a subfolder with both playwright.config.ts and tests/.',
+	);
+}
+
+const showcaseConfigs = showcaseDirs.map((dirName) => {
+	// eslint-disable-next-line @typescript-eslint/no-require-imports
+	const importedModule = require(path.join(repoRoot, dirName, 'playwright.config'));
+	const config = (importedModule.default ?? importedModule) as ChildConfig;
+
+	return {
+		dirName,
+		config,
+	};
+});
+
+const primaryConfig = showcaseConfigs[0]?.config;
+
 export default defineConfig({
-  testDir: './tests',
-  /* De dead-links test is tijdsintensief – ruime timeout */
-  timeout: 5 * 60 * 1000, // 5 minuten per test
-  /* Run tests in files in parallel */
-  fullyParallel: true,
-  /* Fail the build on CI if you accidentally left test.only in the source code. */
-  forbidOnly: !!process.env.CI,
-  /* Retry on CI only */
-  retries: process.env.CI ? 2 : 0,
-  /* Opt out of parallel tests on CI. */
-  workers: process.env.CI ? 1 : undefined,
-  /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: 'html',
-  /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
-  use: {
-    /* Base URL */
-    baseURL: 'https://www.vaarweginformatie.nl',
+	forbidOnly: !!process.env.CI,
+	reporter: primaryConfig?.reporter ?? 'html',
+	workers: primaryConfig?.workers,
+	projects: showcaseConfigs.flatMap(({ dirName, config }) => {
+		const childProjects = config.projects?.length
+			? config.projects
+			: [{ name: 'default' }];
 
-    /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-    trace: 'on-first-retry',
-  },
-
-  /* Configure projects for major browsers */
-  projects: [
-    {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
-    },
-
-    // {
-    //   name: 'firefox',
-    //   use: { ...devices['Desktop Firefox'] },
-    // },
-
-    // {
-    //   name: 'webkit',
-    //   use: { ...devices['Desktop Safari'] },
-    // },
-
-    /* Test against mobile viewports. */
-    // {
-    //   name: 'Mobile Chrome',
-    //   use: { ...devices['Pixel 5'] },
-    // },
-    // {
-    //   name: 'Mobile Safari',
-    //   use: { ...devices['iPhone 12'] },
-    // },
-
-    /* Test against branded browsers. */
-    // {
-    //   name: 'Microsoft Edge',
-    //   use: { ...devices['Desktop Edge'], channel: 'msedge' },
-    // },
-    // {
-    //   name: 'Google Chrome',
-    //   use: { ...devices['Desktop Chrome'], channel: 'chrome' },
-    // },
-  ],
-
-  /* Run your local dev server before starting the tests */
-  // webServer: {
-  //   command: 'npm run start',
-  //   url: 'http://localhost:3000',
-  //   reuseExistingServer: !process.env.CI,
-  // },
+		return childProjects.map((project) => ({
+			...project,
+			name: `${dirName}:${String(project.name ?? 'default')}`,
+			testDir: path.join(dirName, config.testDir ?? 'tests'),
+			timeout: config.timeout,
+			fullyParallel: config.fullyParallel,
+			retries: config.retries,
+			use: {
+				...(config.use ?? {}),
+				...((project.use as Record<string, unknown> | undefined) ?? {}),
+			},
+		}));
+	}),
 });
