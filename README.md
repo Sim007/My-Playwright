@@ -1,21 +1,51 @@
-# My-Playwright
+# My-Playwright Monorepo
 
 [![Playwright Link Checks](https://github.com/sim007/My-Playwright/actions/workflows/playwright.yml/badge.svg?branch=main)](https://github.com/sim007/My-Playwright/actions/workflows/playwright.yml)
 
-Playwright testproject voor `https://www.vaarweginformatie.nl` met drie testlagen: een smoke kliktest (404-checks), een nightly dead-links crawler en visual regressietests van de homepage.
+Playwright monorepo voor meerdere test showcases met **één centrale installatie**. Druk op één knop en test alles.
 
-De repository bevat lokale run-instructies, Docker-ondersteuning, GitHub Actions CI/CD en Gherkin-beschrijvingen van de beschikbare tests.
+Huidi bevat `showcase-vaarweginformatie` met drie testlagen: smoke kliktest (404-checks), dead-links crawler en visual regressietests.
 
 ## Inhoudsopgave
 
 - [Vereisten](#vereisten)
+- [Monorepo structuur](#monorepo-structuur)
 - [Installatie](#installatie)
 - [Tests starten](#tests-starten)
 - [GitHub Actions CI/CD](#github-actions-cicd)
+- [Nieuwe showcase toevoegen](#nieuwe-showcase-toevoegen)
+- [Docker](#docker)
 - [Beschikbare tests](#beschikbare-tests)
 - [Rapport bekijken](#rapport-bekijken)
-- [Structuur](#structuur)
 - [Veelgebruikte troubleshooting](#veelgebruikte-troubleshooting)
+
+## Monorepo structuur
+
+```
+My-Playwright/
+├── package.json                    (root: gedeelde dependencies)
+├── package-lock.json               (root: één lock file)
+├── playwright.config.ts            (root: detecteert alle showcases)
+├── Dockerfile                      (root: bouwt alles)
+├── .github/workflows/playlist.yml  (root: test alles)
+│
+├── showcase-vaarweginformatie/     (showcase 1)
+│   ├── package.json                (workspace: alleen scripts)
+│   ├── playwright.config.ts        (showcase config)
+│   ├── tests/                      (showcase tests)
+│   └── Dockerfile                  (standby: voor standalone build)
+│
+└── showcase-example/               (showcase N, later toe te voegen)
+    ├── package.json
+    ├── playwright.config.ts
+    └── tests/
+```
+
+**Voordelen:**
+- 1x `npm install` in root
+- Alle showcases delen dezelfde Playwright versie
+- Gedeelde eslint, TypeScript config, etc.
+- Efficiënte CI/CD (geen dubbele installs)
 
 ## Vereisten
 
@@ -24,91 +54,101 @@ De repository bevat lokale run-instructies, Docker-ondersteuning, GitHub Actions
 
 ## Installatie
 
-De rootconfig in deze repo detecteert automatisch elke submap met zowel `playwright.config.ts` als `tests/`. Daardoor verschijnen tests uit extra showcase-mappen ook in de Playwright test explorer op repo-niveau.
-
 ```bash
+# Install all dependencies (root + all workspaces)
 npm install
+
+# Install Playwright browser
 npx playwright install chromium
 ```
 
+Dat is het. Alle showcases gebruiken nu hetzelfde `node_modules`.
+
 ## Tests starten
+
+### Lokaal
+
+#### Alle tests in alle showcases
+
+```bash
+npm test
+```
+
+#### Tests per showcase
+
+```bash
+cd showcase-vaarweginformatie
+npm test
+
+# Of via root:
+npm test -- showcase-vaarweginformatie
+```
+
+#### Smoke tests
+
+```bash
+cd showcase-vaarweginformatie
+npm run test:smoke
+```
+
+#### Visual baseline updaten
+
+```bash
+cd showcase-vaarweginformatie
+npm run test:visual:update
+```
 
 ### Via Docker
 
-Build image:
+#### Build image:
 
 ```bash
 docker build -t my-playwright-tests .
 ```
 
-Run alle tests (Chromium):
+#### Run alle tests in alle showcases
 
 ```bash
 docker run --rm my-playwright-tests
 ```
 
-Run met output naar lokale map (rapport/testresultaten) **en** lokale `tests/` snapshots:
+#### Run met output naar lokale directories
 
 ```bash
 docker run --rm \
-  -v "$(pwd)/tests:/app/tests" \
-  -v "$(pwd)/playwright-report:/app/playwright-report" \
+  -v "$(pwd)/showcase-vaarweginformatie/tests:/app/showcase-vaarweginformatie/tests" \
+  -v "$(pwd)/showcase-vaarweginformatie/playwright-report:/app/showcase-vaarweginformatie/playwright-report" \
   -v "$(pwd)/test-results:/app/test-results" \
   my-playwright-tests
 ```
 
-Waarom `tests` mount? De visual snapshots (`tests/*-snapshots`) worden daar gelezen/geschreven; zonder deze mount kan de Docker-run falen op ontbrekende Linux snapshot.
-
-Alleen visual baseline updaten in Docker:
+#### Visual baseline updaten in Docker
 
 ```bash
 docker run --rm \
-  -v "$(pwd)/tests:/app/tests" \
-  -v "$(pwd)/playwright-report:/app/playwright-report" \
+  -v "$(pwd)/showcase-vaarweginformatie/tests:/app/showcase-vaarweginformatie/tests" \
+  -v "$(pwd)/showcase-vaarweginformatie/playwright-report:/app/showcase-vaarweginformatie/playwright-report" \
   -v "$(pwd)/test-results:/app/test-results" \
-  my-playwright-tests npx playwright test homepage-visual --project=chromium --update-snapshots
+  my-playwright-tests npx playwright test showcase-vaarweginformatie/tests/homepage-visual.spec.ts --project=chromium --update-snapshots
 ```
-
-### Aanbevolen schema
-
-- **Elke push/PR (smoke):** kliktest
-- **Elke push/PR (visual):** homepage visual regressie
-- **Nightly (deep):** dead-links crawler
-
-In CI staat dit in `.github/workflows/playwright.yml`.
 
 ## GitHub Actions CI/CD
 
-De workflow is nu generiek voor alle showcase-mappen en kan handmatig gestart worden via GitHub Actions.
+De workflow is generiek voor het gehele monorepo. Open Actions tab → Selecteer `Playwright Link Checks` → `Run workflow` → kies branch → `Run workflow`
 
 ### Jobs
 
 | Job | Trigger | Timeout | Wat |
 |-----|---------|---------|-----|
-| `discover-showcases` | Handmatig | - | Zoekt alle showcase-mappen met Playwright-config en testmap |
-| `smoke-click` | Handmatig | 30 min | Klik test (`npm run test:smoke`) per showcase |
-| `visual-homepage` | Handmatig | 30 min | Visual regressie (`npm run test:visual`) per showcase |
-| `nightly-dead-links` | Handmatig | 60 min | Dead-links crawler (`npm run test:deep`) per showcase |
+| `discover-showcases` | Handmatig | - | Detecteert alle showcase-mappen |
+| `test-all` | Handmatig | 120 min | Draait alle tests in alle showcases |
 
 ### Artifacts
 
-Elk na een test run:
-- `playwright-report-smoke-<showcase>`: HTML rapport van klik test
-- `playwright-report-visual-<showcase>`: HTML rapport van visual tests
-- `playwright-report-nightly-<showcase>`: HTML rapport van crawler
+Na een test run:
+- `playwright-reports`: ZIP van alle `playwright-report/` directories van alle showcases
 
-Download via Actions tab in je GitHub repo.
-
-### Workflow handmatig triggeren
-
-Open Actions tab → Selecteer `Playwright Link Checks` → `Run workflow` → kies branch → `Run workflow`
-
-De workflow detecteert automatisch alle showcase-mappen die minimaal deze bestanden bevatten:
-
-- `package.json`
-- `package-lock.json`
-- `playwright.config.ts`
-- `tests/`
+Download via Actions tab.
 
 ### Status badge
 
@@ -116,24 +156,60 @@ De workflow detecteert automatisch alle showcase-mappen die minimaal deze bestan
 
 In README staat de badge aan de top (koppeert direct naar Actions pagina).
 
-### Alle tests draaien
+## Nieuwe showcase toevoegen
+
+Wil je een extra showcase toevoegen, bijvoorbeeld `showcase-nieuw`?
+
+### 1. Map aanmaken
 
 ```bash
-npx playwright test --project=chromium
+mkdir showcase-nieuw
 ```
 
-### Extra showcase-map toevoegen
+### 2. Minimale `package.json`
 
-Wil je een extra showcase toevoegen, bijvoorbeeld `showcase-nieuw`, dan is dit voldoende:
+```json
+{
+  "name": "showcase-nieuw",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test": "playwright test --project=chromium",
+    "test:smoke": "playwright test --grep @smoke --project=chromium"
+  }
+}
+```
 
-- maak `showcase-nieuw/playwright.config.ts`
-- maak `showcase-nieuw/tests/`
-- voeg `showcase-nieuw/package.json` toe
-- commit ook `showcase-nieuw/package-lock.json` als je die showcase in GitHub Actions wilt meenemen
+### 3. `playwright.config.ts`
 
-Daarna wordt die showcase automatisch meegenomen door de rootconfig in deze repo.
+Kopieer van `showcase-vaarweginformatie/playwright.config.ts` en pas `baseURL` en `testDir` aan:
 
-De GitHub Actions workflow neemt dezelfde showcase ook automatisch mee zodra die map aan de CI-voorwaarden voldoet.
+```typescript
+export default defineConfig({
+  testDir: './tests',
+  use: {
+    baseURL: 'https://your-site.nl',
+  },
+  // ...
+});
+```
+
+### 4. Tests directory
+
+```bash
+mkdir showcase-nieuw/tests
+```
+
+Voeg je test files toe (bijv. `homepage.spec.ts`).
+
+### 5. Klaar!
+
+```bash
+cd showcase-nieuw
+npm test
+```
+
+De root config en GitHub Actions workflow detecteren je showcase automatisch.
 
 ### Alleen de klik + 404 test draaien
 

@@ -1,22 +1,13 @@
 {
-  "name": "my-playwright",
+  "name": "showcase-vaarweginformatie",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Playwright tests for vaarweginformatie.nl",
+  "private": true,
   "scripts": {
     "test": "playwright test --project=chromium",
     "test:smoke": "playwright test tests/click.spec.ts --project=chromium",
     "test:deep": "playwright test tests/dead-links.spec.ts --project=chromium",
     "test:visual": "playwright test tests/homepage-visual.spec.ts --project=chromium",
-    "test:visual:update": "playwright test tests/homepage-visual.spec.ts --project=chromium --update-snapshots",
-    "report": "playwright show-report --host 127.0.0.1 --port 9333"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
-  "devDependencies": {
-    "@playwright/test": "^1.59.1",
-    "@types/node": "^25.6.0"
+    "test:visual:update": "playwright test tests/homepage-visual.spec.ts --project=chromium --update-snapshots"
   }
 }

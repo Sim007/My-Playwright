@@ -22,30 +22,22 @@ jobs:
           showcases=$(find . -mindepth 1 -maxdepth 1 -type d ! -name '.*' | while read -r dir; do
             name="${dir#./}"
 
-            if [[ -f "$dir/package.json" && -f "$dir/package-lock.json" && -f "$dir/playwright.config.ts" && -d "$dir/tests" ]]; then
+            if [[ -f "$dir/package.json" && -f "$dir/playwright.config.ts" && -d "$dir/tests" ]]; then
               printf '%s\n' "$name"
             fi
           done | sort)
 
           if [[ -z "$showcases" ]]; then
-            echo 'No showcase folders with package.json, package-lock.json, playwright.config.ts and tests/ found.' >&2
+            echo 'No showcase folders with package.json, playwright.config.ts and tests/ found.' >&2
             exit 1
           fi
 
           matrix=$(printf '%s\n' "$showcases" | jq -R . | jq -cs .)
           echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
 
-  smoke-click:
-    needs: discover-showcases
+  test-all:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
-    strategy:
-      fail-fast: false
-      matrix:
-        showcase: ${{ fromJson(needs.discover-showcases.outputs.matrix) }}
-    defaults:
-      run:
-        working-directory: ${{ matrix.showcase }}
+    timeout-minutes: 120
 
     steps:
       - name: Checkout
@@ -56,101 +48,21 @@ jobs:
         with:
           node-version: 20
           cache: npm
-          cache-dependency-path: ${{ matrix.showcase }}/package-lock.json
+          cache-dependency-path: package-lock.json
 
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Install Playwright Chromium
-        run: npx playwright install --with-deps chromium
-
-      - name: Run smoke click test
-        run: CI=true npm run test:smoke --if-present
-
-      - name: Upload Playwright report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-report-smoke-${{ matrix.showcase }}
-          path: ${{ matrix.showcase }}/playwright-report/
-          if-no-files-found: ignore
-
-  visual-homepage:
-    needs: discover-showcases
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    strategy:
-      fail-fast: false
-      matrix:
-        showcase: ${{ fromJson(needs.discover-showcases.outputs.matrix) }}
-    defaults:
-      run:
-        working-directory: ${{ matrix.showcase }}
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-          cache-dependency-path: ${{ matrix.showcase }}/package-lock.json
-
-      - name: Install dependencies
-        run: npm ci
+      - name: Install dependencies (all workspaces)
+        run: npm ci --workspaces
 
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
 
-      - name: Run visual homepage test
-        run: CI=true npm run test:visual --if-present
+      - name: Run all tests
+        run: CI=true npm test
 
-      - name: Upload Playwright report
+      - name: Upload Playwright reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report-visual-${{ matrix.showcase }}
-          path: ${{ matrix.showcase }}/playwright-report/
-          if-no-files-found: ignore
-
-  nightly-dead-links:
-    needs: discover-showcases
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
-    strategy:
-      fail-fast: false
-      matrix:
-        showcase: ${{ fromJson(needs.discover-showcases.outputs.matrix) }}
-    defaults:
-      run:
-        working-directory: ${{ matrix.showcase }}
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-          cache-dependency-path: ${{ matrix.showcase }}/package-lock.json
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Install Playwright Chromium
-        run: npx playwright install --with-deps chromium
-
-      - name: Run deep dead-links test
-        run: CI=true npm run test:deep --if-present
-
-      - name: Upload Playwright report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-report-nightly-${{ matrix.showcase }}
-          path: ${{ matrix.showcase }}/playwright-report/
+          name: playwright-reports
+          path: '*/playwright-report/'
           if-no-files-found: ignore

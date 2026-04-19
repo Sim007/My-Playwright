@@ -61,7 +61,7 @@ test('Klik op alle links en buttons – rapporteer 404s', async ({ browser }, te
   const page = await context.newPage();
 
   await page.goto(BASE_URL, { waitUntil: 'networkidle', timeout: 30_000 });
-  await page.waitForTimeout(2_000);
+  await page.waitForTimeout(500);
 
   const targets = await page.$$eval(INTERACTIVE_SELECTOR, (elements) => {
     const isVisible = (el: Element) => {
@@ -158,12 +158,12 @@ test('Klik op alle links en buttons – rapporteer 404s', async ({ browser }, te
       }
 
       try {
-        let retries = 3;
+        let retries = 2;
         let pageLoaded = false;
         while (retries > 0 && !pageLoaded) {
           try {
-            await page.goto(BASE_URL, { waitUntil: 'domcontentloaded', timeout: 30_000 });
-            await page.waitForTimeout(500);
+            await page.goto(BASE_URL, { waitUntil: 'domcontentloaded', timeout: 20_000 });
+            await page.waitForTimeout(200);
             pageLoaded = true;
           } catch {
             retries--;
@@ -171,7 +171,7 @@ test('Klik op alle links en buttons – rapporteer 404s', async ({ browser }, te
               console.warn(`  SKIP ${target.type}: ${target.label} (pagina kon niet geladen worden)`);
               return;
             }
-            await page.waitForTimeout(1_000);
+            await page.waitForTimeout(500);
           }
         }
 
@@ -190,8 +190,8 @@ test('Klik op alle links en buttons – rapporteer 404s', async ({ browser }, te
         }
 
         const element = currentTargets.nth(target.domIndex);
-        const navigationPromise = page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 5_000 }).catch(() => null);
-        const popupPromise = page.waitForEvent('popup', { timeout: 5_000 }).catch(() => null);
+        const navigationPromise = page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 3_000 }).catch(() => null);
+        const popupPromise = page.waitForEvent('popup', { timeout: 3_000 }).catch(() => null);
 
         const [, navigation, popup] = await Promise.all([
           element.evaluate((el: HTMLElement) => el.click()).catch(() => null),

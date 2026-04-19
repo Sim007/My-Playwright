@@ -41,3 +41,5 @@ build/
 
 # Misc
 .turbo/
+# Monorepo: ignore showcase package-lock files (use root only)
+showcase-*/package-lock.json
