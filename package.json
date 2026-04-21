@@ -7,11 +7,11 @@
     "showcase-*"
   ],
   "scripts": {
-    "test": "playwright test --project=chromium",
-    "test:all": "playwright test --project=chromium",
-    "test:smoke": "playwright test --grep @smoke --project=chromium",
-    "test:visual": "playwright test --grep @visual --project=chromium",
-    "test:deep": "playwright test --grep @deep --project=chromium",
+    "test": "playwright test",
+    "test:all": "playwright test",
+    "test:smoke": "playwright test --grep @smoke",
+    "test:visual": "playwright test --grep @visual",
+    "test:deep": "playwright test --grep @deep",
     "report": "playwright show-report --host 127.0.0.1 --port 9333"
   },
   "keywords": [],
