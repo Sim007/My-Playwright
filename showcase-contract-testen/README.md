@@ -64,6 +64,23 @@ De Playwright tests valideren responses met **AJV** tegen de OpenAPI schemas.
 npx playwright test
 ```
 
+## Leesbaar txt rapport
+
+Bij het runnen van de contract tests wordt automatisch een leesbaar txt rapport
+gemaakt, ook via de Testing view in VS Code.
+
+Pad:
+
+```
+showcase-contract-testen/test-results/contract-report.txt
+```
+
+Na sync op een andere machine (zoals Windows):
+
+```bash
+npm install
+```
+
 ## Tooling
 
 | Tool | Doel |

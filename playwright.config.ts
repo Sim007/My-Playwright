@@ -3,16 +3,26 @@ import path from 'node:path';
 
 export default defineConfig({
 	forbidOnly: !!process.env.CI,
-	reporter: 'html',
+	reporter: [
+		['html'],
+		[
+			'./showcase-contract-testen/scripts/readable-reporter.js',
+			{
+				baseDir: path.resolve(__dirname, 'showcase-contract-testen'),
+				onlyPath: 'deelsysteem/contract-tests',
+				outputFile: 'test-results/contract-report.txt',
+			},
+		],
+	],
 	webServer: [
 		{
-			command: 'npx prism mock showcase-contract-testen/scheepsregister/openapi.yaml --port 4010',
+			command: 'npm --workspace showcase-contract-testen run mock:scheepsregister',
 			url: 'http://localhost:4010/v1/schepen/244820000',
 			reuseExistingServer: true,
 			timeout: 15_000,
 		},
 		{
-			command: 'npx prism mock showcase-contract-testen/deelsysteem/openapi.yaml --port 4011',
+			command: 'npm --workspace showcase-contract-testen run mock:deelsysteem',
 			url: 'http://localhost:4011/v1/schepen/244820000/lengte-en-positie',
 			reuseExistingServer: true,
 			timeout: 15_000,

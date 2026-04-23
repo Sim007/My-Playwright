@@ -129,8 +129,20 @@ const summary = [
   '',
 ];
 
+const formatted = new Intl.DateTimeFormat('nl-NL', {
+  dateStyle: 'short',
+  timeStyle: 'medium',
+}).format(new Date());
+
+const header = [
+  'Showcase-contract-testen',
+  `Uitvoer: ${formatted}`,
+  '',
+];
+
 const fallbackOutput = `${result.stdout || ''}${result.stderr || ''}`.trim();
 let finalText = [
+  ...header,
   ...formatSection('Consumer', consumer, consumerApiInfo),
   ...formatSection('Provider', provider, providerApiInfo),
   ...summary,
@@ -138,6 +150,7 @@ let finalText = [
 
 if (!report) {
   finalText = [
+    ...header,
     'Kon JSON rapport niet parsen. Ruwe uitvoer:',
     '----------------------------------------',
     fallbackOutput || '(geen output)',

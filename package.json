@@ -9,6 +9,7 @@
   "scripts": {
     "test": "playwright test",
     "test:all": "playwright test",
+    "test:contract": "playwright test --project=showcase-contract-testen:contract-api",
     "test:smoke": "playwright test --grep @smoke",
     "test:visual": "playwright test --grep @visual",
     "test:deep": "playwright test --grep @deep",
