@@ -1,0 +1,117 @@
+openapi: 3.1.0
+
+info:
+  title: Scheepsregister API
+  description: Biedt schipeigenschappen aan op basis van MMSI-nummer aan geautoriseerde afnemers.
+  version: 1.0.0
+
+paths:
+  /v1/schepen/{mmsi}:
+    get:
+      summary: Haal schipeigenschappen op
+      description: Geeft de registratie-eigenschappen van een schip terug op basis van het MMSI-nummer.
+      operationId: getSchip
+      parameters:
+        - name: mmsi
+          in: path
+          required: true
+          description: Maritime Mobile Service Identity — uniek 9-cijferig identificatienummer van het schip.
+          schema:
+            type: string
+            pattern: '^\d{9}$'
+            example: '244820000'
+      responses:
+        '200':
+          description: Schipeigenschappen succesvol opgehaald.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Schip'
+              example:
+                mmsi: '244820000'
+                naam: 'MS Rotterdam'
+                type: vrachtschip
+                lengte: 185.5
+                breedte: 25.2
+                diepgang: 7.8
+                vlag: NL
+        '404':
+          description: Geen schip gevonden met het opgegeven MMSI-nummer.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Fout'
+              example:
+                code: SCHIP_NIET_GEVONDEN
+                bericht: 'Geen schip gevonden met MMSI 244820000.'
+
+components:
+  schemas:
+    Schip:
+      type: object
+      description: Registratie-eigenschappen van een schip zoals vastgelegd in het scheepsregister.
+      required:
+        - mmsi
+        - naam
+        - type
+        - lengte
+        - breedte
+        - diepgang
+        - vlag
+      additionalProperties: false
+      properties:
+        mmsi:
+          type: string
+          description: Maritime Mobile Service Identity (9 cijfers).
+          pattern: '^\d{9}$'
+          example: '244820000'
+        naam:
+          type: string
+          description: Geregistreerde naam van het schip.
+          minLength: 1
+          example: 'MS Rotterdam'
+        type:
+          type: string
+          description: Scheepstype conform de classificatie van het register.
+          enum:
+            - tanker
+            - vrachtschip
+            - passagiersschip
+          example: vrachtschip
+        lengte:
+          type: number
+          description: Totale lengte van het schip in meters.
+          exclusiveMinimum: 0
+          example: 185.5
+        breedte:
+          type: number
+          description: Grootste breedte van het schip in meters.
+          exclusiveMinimum: 0
+          example: 25.2
+        diepgang:
+          type: number
+          description: Maximale diepgang van het schip in meters.
+          exclusiveMinimum: 0
+          example: 7.8
+        vlag:
+          type: string
+          description: Vlagstaat van het schip (ISO 3166-1 alpha-2).
+          pattern: '^[A-Z]{2}$'
+          example: NL
+
+    Fout:
+      type: object
+      description: Standaard foutrespons.
+      required:
+        - code
+        - bericht
+      additionalProperties: false
+      properties:
+        code:
+          type: string
+          description: Machineleesbare foutcode.
+          example: SCHIP_NIET_GEVONDEN
+        bericht:
+          type: string
+          description: Mensleesbare beschrijving van de fout.
+          example: 'Geen schip gevonden met MMSI 244820000.'

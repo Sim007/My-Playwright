@@ -5,6 +5,13 @@
     }
   ],
   "settings": {
-    "testing.openTesting": "neverOpen"
+    "testing.openTesting": "neverOpen",
+    "playwright.reuseBrowser": false,
+    "playwright.configs": [
+      "playwright.config.ts",
+      "showcase-simpel/playwright.config.ts",
+      "showcase-vaarweginformatie/playwright.config.ts",
+      "showcase-contract-testen/playwright.config.ts"
+    ]
   }
 }

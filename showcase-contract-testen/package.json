@@ -1,0 +1,22 @@
+{
+  "name": "showcase-contract-testen",
+  "version": "1.0.0",
+  "description": "Contract testing showcase voor scheepvaartdomein met Prism mock servers en Playwright AJV validatie",
+  "scripts": {
+    "mock:scheepsregister": "prism mock scheepsregister/openapi.yaml --port 4010",
+    "mock:deelsysteem": "prism mock deelsysteem/openapi.yaml --port 4011",
+    "mock:all": "concurrently --names \"scheepsregister,deelsysteem\" --prefix-colors \"blue,green\" \"npm run mock:scheepsregister\" \"npm run mock:deelsysteem\"",
+    "test:contract": "playwright test --config playwright.config.ts",
+    "test:contract:txt": "node scripts/run-contract-tests-with-readable-report.js",
+    "test:with-mocks": "concurrently -k --success first --names \"mocks,tests\" --prefix-colors \"blue,green\" \"npm run mock:all\" \"wait-on tcp:4010 tcp:4011 && npm run test:contract:txt\""
+  },
+  "devDependencies": {
+    "@stoplight/prism-cli": "^5.9.0",
+    "@playwright/test": "^1.43.0",
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
+    "concurrently": "^9.1.2",
+    "js-yaml": "^4.1.0",
+    "wait-on": "^7.2.0"
+  }
+}

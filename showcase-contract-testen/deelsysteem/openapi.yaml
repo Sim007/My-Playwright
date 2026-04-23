@@ -1,0 +1,119 @@
+openapi: 3.1.0
+
+info:
+  title: Deelsysteem API — Scheepslengte en positie
+  description: Levert de gecombineerde scheepslengte en actuele positie van een schip op basis van MMSI-nummer.
+  version: 1.0.0
+
+paths:
+  /v1/schepen/{mmsi}/lengte-en-positie:
+    get:
+      summary: Haal scheepslengte en actuele positie op
+      description: >
+        Geeft de lengte (afkomstig uit het scheepsregister) en de meest recente
+        AIS-positie van een schip gecombineerd terug op basis van het MMSI-nummer.
+      operationId: getLengteEnPositie
+      parameters:
+        - name: mmsi
+          in: path
+          required: true
+          description: Maritime Mobile Service Identity — uniek 9-cijferig identificatienummer van het schip.
+          schema:
+            type: string
+            pattern: '^\d{9}$'
+            example: '244820000'
+      responses:
+        '200':
+          description: Scheepslengte en positie succesvol opgehaald.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LengteEnPositie'
+              example:
+                mmsi: '244820000'
+                lengte: 185.5
+                peildatum: '2026-04-23T10:30:00Z'
+                latitude: 51.9225
+                longitude: 4.4792
+                koers: 270.5
+                tijdstip: '2026-04-23T10:29:55Z'
+        '404':
+          description: Geen schip gevonden met het opgegeven MMSI-nummer.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Fout'
+              example:
+                code: SCHIP_NIET_GEVONDEN
+                bericht: 'Geen schip gevonden met MMSI 244820000.'
+
+components:
+  schemas:
+    LengteEnPositie:
+      type: object
+      description: Gecombineerde scheepslengte en actuele AIS-positie.
+      required:
+        - mmsi
+        - lengte
+        - peildatum
+        - latitude
+        - longitude
+        - koers
+        - tijdstip
+      additionalProperties: false
+      properties:
+        mmsi:
+          type: string
+          description: Maritime Mobile Service Identity (9 cijfers).
+          pattern: '^\d{9}$'
+          example: '244820000'
+        lengte:
+          type: number
+          description: Totale lengte van het schip in meters, afkomstig uit het scheepsregister.
+          exclusiveMinimum: 0
+          example: 185.5
+        peildatum:
+          type: string
+          format: date-time
+          description: Tijdstip waarop de lengte voor het laatst is geverifieerd in het scheepsregister.
+          example: '2026-04-23T10:30:00Z'
+        latitude:
+          type: number
+          description: Breedtegraad van de actuele scheepspositie in decimale graden (WGS84).
+          minimum: -90
+          maximum: 90
+          example: 51.9225
+        longitude:
+          type: number
+          description: Lengtegraad van de actuele scheepspositie in decimale graden (WGS84).
+          minimum: -180
+          maximum: 180
+          example: 4.4792
+        koers:
+          type: number
+          description: Vaarrichting van het schip in graden (0–360, COG via AIS).
+          minimum: 0
+          maximum: 360
+          example: 270.5
+        tijdstip:
+          type: string
+          format: date-time
+          description: Tijdstip van de meest recente AIS-positiebepaling.
+          example: '2026-04-23T10:29:55Z'
+
+    Fout:
+      type: object
+      description: Standaard foutrespons.
+      required:
+        - code
+        - bericht
+      additionalProperties: false
+      properties:
+        code:
+          type: string
+          description: Machineleesbare foutcode.
+          example: SCHIP_NIET_GEVONDEN
+        bericht:
+          type: string
+          description: Mensleesbare beschrijving van de fout.
+          example: 'Geen schip gevonden met MMSI 244820000.'
