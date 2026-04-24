@@ -61,19 +61,33 @@ curl http://localhost:4011/v1/schepen/244820000/lengte-en-positie
 De Playwright tests valideren responses met **AJV** tegen de OpenAPI schemas.
 
 ```bash
-npx playwright test
+# Contract tests draaien (report wordt ook geschreven)
+npm run test:contract
+
+# Alias voor team-consistentie
+npm run test:contract:txt
+
+# End-to-end: mocks opstarten, wachten op poorten, tests draaien, mocks stoppen
+npm run test:with-mocks
 ```
 
 ## Leesbaar txt rapport
 
 Bij het runnen van de contract tests wordt automatisch een leesbaar txt rapport
-gemaakt, ook via de Testing view in VS Code.
+gemaakt.
 
 Pad:
 
 ```
 showcase-contract-testen/test-results/contract-report.txt
 ```
+
+Inhoud van het rapport:
+
+- Sectie Consumer met API, endpoint en versie
+- Sectie Provider met API, endpoint en versie
+- Status en duur per test
+- Samenvatting met totaal, geslaagd, gefaald, skipped, flaky en duur
 
 Na sync op een andere machine (zoals Windows):
 

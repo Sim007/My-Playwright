@@ -1,6 +1,14 @@
 import { defineConfig, devices } from '@playwright/test';
 import path from 'node:path';
 
+const projectArgValues = process.argv
+	.filter((arg) => arg.startsWith('--project='))
+	.map((arg) => arg.slice('--project='.length));
+
+const hasProjectFilter = projectArgValues.length > 0;
+const needsContractMocks =
+	!hasProjectFilter || projectArgValues.some((value) => value.includes('showcase-contract-testen'));
+
 export default defineConfig({
 	forbidOnly: !!process.env.CI,
 	reporter: [
@@ -14,26 +22,42 @@ export default defineConfig({
 			},
 		],
 	],
-	webServer: [
-		{
-			command: 'npm --workspace showcase-contract-testen run mock:scheepsregister',
-			url: 'http://localhost:4010/v1/schepen/244820000',
-			reuseExistingServer: true,
-			timeout: 15_000,
-		},
-		{
-			command: 'npm --workspace showcase-contract-testen run mock:deelsysteem',
-			url: 'http://localhost:4011/v1/schepen/244820000/lengte-en-positie',
-			reuseExistingServer: true,
-			timeout: 15_000,
-		},
-	],
+	webServer: needsContractMocks
+		? [
+				{
+					command: 'npm --workspace showcase-contract-testen run mock:scheepsregister',
+					url: 'http://localhost:4010/v1/schepen/244820000',
+					reuseExistingServer: true,
+					timeout: 60_000,
+				},
+				{
+					command: 'npm --workspace showcase-contract-testen run mock:deelsysteem',
+					url: 'http://localhost:4011/v1/schepen/244820000/lengte-en-positie',
+					reuseExistingServer: true,
+					timeout: 60_000,
+				},
+			]
+		: undefined,
 	
 	projects: [
 		// showcase-simpel
 		{
 			name: 'showcase-simpel:chromium',
 			testDir: path.resolve(__dirname, 'showcase-simpel/tests'),
+			timeout: 30 * 1000,
+			fullyParallel: true,
+			retries: 0,
+			use: {
+				...devices['Desktop Chrome'],
+				baseURL: 'https://playwright.dev',
+				trace: 'on-first-retry',
+			},
+		},
+
+		// showcase-rapport-allure3
+		{
+			name: 'allure3:chromium',
+			testDir: path.resolve(__dirname, 'showcase-rapport-allure3/tests'),
 			timeout: 30 * 1000,
 			fullyParallel: true,
 			retries: 0,

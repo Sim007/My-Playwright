@@ -11,7 +11,8 @@
       "playwright.config.ts",
       "showcase-simpel/playwright.config.ts",
       "showcase-vaarweginformatie/playwright.config.ts",
-      "showcase-contract-testen/playwright.config.ts"
+      "showcase-contract-testen/playwright.config.ts",
+      "showcase-rapport-allure3/playwright.config.ts"
     ]
   }
 }

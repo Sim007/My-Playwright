@@ -7,7 +7,7 @@
     "mock:deelsysteem": "npx @stoplight/prism-cli mock deelsysteem/openapi.yaml --port 4011",
     "mock:all": "concurrently --names \"scheepsregister,deelsysteem\" --prefix-colors \"blue,green\" \"npm run mock:scheepsregister\" \"npm run mock:deelsysteem\"",
     "test:contract": "playwright test --config playwright.config.ts",
-    "test:contract:txt": "node scripts/run-contract-tests-with-readable-report.js",
+    "test:contract:txt": "npm run test:contract",
     "test:with-mocks": "concurrently -k --success first --names \"mocks,tests\" --prefix-colors \"blue,green\" \"npm run mock:all\" \"wait-on tcp:4010 tcp:4011 && npm run test:contract:txt\""
   },
   "devDependencies": {
