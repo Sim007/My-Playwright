@@ -1,3 +1,51 @@
+## Contracttesten deelsysteem
+
+### Consumer test: schipeigenschappen.spec.ts
+
+```gherkin
+Feature: Scheepsregister API contract (consumer)
+  Als deelsysteem wil ik zeker weten dat de Scheepsregister API voldoet aan het contract.
+
+  Scenario: Ophalen van een bestaand schip
+    Given een bestaand MMSI-nummer
+    When ik GET /v1/schepen/{mmsi} aanroep
+    Then krijg ik status 200
+    And voldoet de response aan het Schip-schema
+    And komt het mmsi in de response overeen met het gevraagde mmsi
+    And is het scheepstype een toegestane enum-waarde
+    And heeft de vlag het formaat ISO 3166-1 alpha-2
+    And zijn afmetingen positieve getallen
+
+  Scenario: Ophalen van een onbekend schip
+    Given een onbekend MMSI-nummer
+    When ik GET /v1/schepen/{mmsi} aanroep
+    Then krijg ik status 404
+    And voldoet de response aan het Fout-schema
+```
+
+### Provider test: lengte-en-positie.spec.ts
+
+```gherkin
+Feature: Deelsysteem API contract (provider)
+  Als provider wil ik zeker weten dat mijn API voldoet aan het gepubliceerde contract.
+
+  Scenario: Ophalen van lengte en positie van een bestaand schip
+    Given een bestaand MMSI-nummer
+    When ik GET /v1/schepen/{mmsi}/lengte-en-positie aanroep
+    Then krijg ik status 200
+    And voldoet de response aan het LengteEnPositie-schema
+    And komt het mmsi in de response overeen met het gevraagde mmsi
+    And is lengte een positief getal
+    And liggen coördinaten binnen geldige WGS84-grenzen
+    And ligt koers tussen 0 en 360 graden
+    And zijn peildatum en tijdstip geldige ISO 8601 datums
+
+  Scenario: Ophalen van lengte en positie van een onbekend schip
+    Given een onbekend MMSI-nummer
+    When ik GET /v1/schepen/{mmsi}/lengte-en-positie aanroep
+    Then krijg ik status 404
+    And voldoet de response aan het Fout-schema
+```
 # My-Playwright Monorepo
 
 [![Playwright Link Checks](https://github.com/sim007/My-Playwright/actions/workflows/playwright.yml/badge.svg?branch=main)](https://github.com/sim007/My-Playwright/actions/workflows/playwright.yml)
